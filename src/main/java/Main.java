@@ -1,17 +1,16 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
 
     // Scanner utilizado para leer los datos introducidos por el usuario.
     private static final Scanner SCANNER = new Scanner(System.in);
-    private static int prioridad;
     private static final String ARCHIVO_TAREAS = "tareas.txt";
 
     // Lista que almacena las tareas mientras el programa está en ejecución.
@@ -34,7 +33,7 @@ public class Main {
                 case 4 -> { eliminarTarea(); guardarTareas(); }
                 case 5 -> { añadirPrioridad(); guardarTareas(); }
                 case 6 -> filtrarPorPrioridad();
-                case 0 -> { salir = true; guardarTareas(); }
+                case 0 -> { salir = true; guardarTareas(); } // ALEX; yo hubiera puesto saliendo puesto que esta opcion sale del bucle
                 default -> System.out.println("Opción no válida.");
             }
         }
@@ -54,12 +53,13 @@ public class Main {
                 3. Completar tarea
                 4. Eliminar tarea
                 5. Añadir Prioridad
+                6. Filtrar por prioridad
                 0. Salir
                 """);
     }
 
     /**
-     * Muestra todas las tareas junto con su estado.
+     * Muestra todas las tareas junto con su estado y prioridad.
      * [ ] significa pendiente y [X] significa completada.
      */
     private static void mostrarTareas() {
@@ -105,7 +105,8 @@ public class Main {
             return;
         }
 
-        TAREAS.add(new Tarea(descripcion, false, prioridad));
+        // Se crea siempre con prioridad 0 (Sin prioridad)
+        TAREAS.add(new Tarea(descripcion, false, 0));
         System.out.println("Tarea agregada correctamente.");
     }
 
@@ -132,8 +133,8 @@ public class Main {
         Tarea tarea = TAREAS.get(indice);
 
         // Los record son inmutables, por lo que se reemplaza la tarea
-        // por otra con la misma descripción y el estado completado.
-        TAREAS.set(indice, new Tarea(tarea.descripcion(), true, prioridad));
+        // manteniendo su descripción y prioridad pero cambiando el estado.
+        TAREAS.set(indice, new Tarea(tarea.descripcion(), true, tarea.prioridad()));
 
         System.out.println("Tarea marcada como completada.");
     }
@@ -161,6 +162,74 @@ public class Main {
 
         Tarea eliminada = TAREAS.remove(indice);
         System.out.println("Tarea eliminada: " + eliminada.descripcion());
+    }
+
+    /**
+     * Permite seleccionar una tarea y asignarle un nivel de prioridad.
+     */
+    private static void añadirPrioridad() {
+        mostrarTareas();
+
+        // No solicita un número si no existen tareas.
+        if (TAREAS.isEmpty()) {
+            return;
+        }
+
+        // Se resta uno porque los índices de las listas comienzan en cero.
+        int indice = leerNumero("Número de la tarea: ") - 1;
+
+        // Comprueba que la tarea seleccionada exista.
+        if (!indiceValido(indice)) {
+            System.out.println("La tarea seleccionada no existe.");
+            return;
+        }
+
+        // Se declara la variable prioridad como variable local
+        int prioridad = leerNumero("Seleccione la prioridad alta(3), media(2) o baja(1): ");
+
+        if (prioridad < 1 || prioridad > 3) {
+            System.out.println("Prioridad no válida. Debe ser 1, 2 o 3.");
+            return;
+        }
+
+        Tarea tarea = TAREAS.get(indice);
+
+        TAREAS.set(indice, new Tarea(tarea.descripcion(), tarea.completada(), prioridad));
+
+        System.out.println("Asignada prioridad a la tarea.");
+    }
+
+    /**
+     * Muestra únicamente las tareas que coincidan con la prioridad seleccionada.
+     */
+    private static void filtrarPorPrioridad() {
+        if (TAREAS.isEmpty()) {
+            System.out.println("No hay tareas para filtrar.");
+            return;
+        }
+
+        int prioridad = leerNumero("Selecciona la prioridad a filtrar - Alta(3), Media(2) o Baja(1): ");
+
+        if (prioridad < 1 || prioridad > 3) {
+            System.out.println("Prioridad no válida. Debe ser 1, 2 o 3.");
+            return;
+        }
+
+        System.out.println("\n--- Tareas con prioridad " + prioridad + " ---");
+        boolean encontradas = false;
+
+        for (int i = 0; i < TAREAS.size(); i++) {
+            Tarea tarea = TAREAS.get(i);
+            if (tarea.prioridad() == prioridad) {
+                String estado = tarea.completada() ? "[X]" : "[ ]";
+                System.out.printf("%d. %s %s%n", i + 1, estado, tarea.descripcion());
+                encontradas = true;
+            }
+        }
+
+        if (!encontradas) {
+            System.out.println("No hay tareas con esa prioridad.");
+        }
     }
 
     /**
@@ -193,78 +262,8 @@ public class Main {
     }
 
     /**
-     * Representa una tarea mediante su descripción y su estado.
-     *
-     * @param descripcion texto descriptivo de la tarea
-     * @param completada  indica si la tarea ya fue completada
-     * @param prioridad
+     * Guarda la lista de tareas en el archivo de texto.
      */
-    private record Tarea(String descripcion, boolean completada, int prioridad) {
-    }
-
-    private static void añadirPrioridad() {
-        mostrarTareas();
-
-        // No solicita un número si no existen tareas.
-        if (TAREAS.isEmpty()) {
-            return;
-        }
-
-        // Se resta uno porque los índices de las listas comienzan en cero.
-        int indice = leerNumero("Número de la tarea: ") - 1;
-
-        // Comprueba que la tarea seleccionada exista.
-        if (!indiceValido(indice)) {
-            System.out.println("La tarea seleccionada no existe.");
-            return;
-        }
-
-        // Se declara la variable prioridad leyendo la entrada del usuario
-         prioridad = leerNumero("Seleccione la prioridad alta(3), media(2) o baja(1): ");
-
-        if (prioridad < 1 || prioridad > 3) {
-            System.out.println("Prioridad no válida. Debe ser 1, 2 o 3.");
-            return;
-        }
-
-        Tarea tarea = TAREAS.get(indice);
-
-        // Ahora 'prioridad' existe y no dará error de compilación
-        TAREAS.set(indice, new Tarea(tarea.descripcion(), tarea.completada(), prioridad));
-
-        System.out.println("Asignada prioridad a la tarea.");
-    }
-
-    private static void filtrarPorPrioridad() {
-        if (TAREAS.isEmpty()) {
-            System.out.println("No hay tareas para filtrar.");
-            return;
-        }
-
-        int prioridad = leerNumero("Selecciona la prioridad a filtrar - Alta(3), Media(2) o Baja(1): ");
-
-        if (prioridad < 1 || prioridad > 3) {
-            System.out.println("Prioridad no válida. Debe ser 1, 2 o 3.");
-            return;
-        }
-
-        System.out.println("\n--- Tareas con prioridad " + prioridad + " ---");
-        boolean encontradas = false;
-
-        for (int i = 0; i < TAREAS.size(); i++) {
-            Tarea tarea = TAREAS.get(i);
-            if (tarea.prioridad() == prioridad) {
-                String estado = tarea.completada() ? "[X]" : "[ ]";
-                System.out.printf("%d. %s %s%n", i + 1, estado, tarea.descripcion());
-                encontradas = true;
-            }
-        }
-
-        if (!encontradas) {
-            System.out.println("No hay tareas con esa prioridad.");
-        }
-    }
-
     private static void guardarTareas() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARCHIVO_TAREAS))) {
             for (Tarea tarea : TAREAS) {
@@ -299,4 +298,13 @@ public class Main {
         }
     }
 
+    /**
+     * Representa una tarea mediante su descripción, su estado y su prioridad.
+     *
+     * @param descripcion texto descriptivo de la tarea
+     * @param completada  indica si la tarea ya fue completada
+     * @param prioridad   nivel de prioridad (1 = baja, 2 = media, 3 = alta)
+     */
+    private record Tarea(String descripcion, boolean completada, int prioridad) {
+    }
 }

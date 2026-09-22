@@ -1,0 +1,3 @@
+hacer la comida|false|1
+barrer la casa|false|2
+estudiar programacion|false|2
