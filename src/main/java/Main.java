@@ -12,12 +12,12 @@ public class Main {
 
     public static void main(String[] args) {
         // Controla cuándo debe finalizar el programa.
-        boolean ejecutando = true;
+        boolean salir = false;
 
         System.out.println("=== Gestor de tareas To-Do ===");
 
         // Muestra el menú repetidamente hasta que el usuario elija salir.
-        while (ejecutando) {
+        while (salir) {
             mostrarMenu();
 
             // Ejecuta una acción según la opción seleccionada.
@@ -26,7 +26,7 @@ public class Main {
                 case 2 -> agregarTarea();
                 case 3 -> completarTarea();
                 case 4 -> eliminarTarea();
-                case 0 -> ejecutando = false;
+                case 0 -> salir = true; //ALEX; yo hubiera puesto saliendo puesto que esta opcion sale del bucle
                 default -> System.out.println("Opción no válida.");
             }
         }
@@ -184,4 +184,5 @@ public class Main {
      */
     private record Tarea(String descripcion, boolean completada) {
     }
+
 }
