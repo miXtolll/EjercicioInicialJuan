@@ -231,4 +231,34 @@ public class Main {
         System.out.println("Asignada prioridad a la tarea.");
     }
 
+    private static void filtrarPorPrioridad() {
+        if (TAREAS.isEmpty()) {
+            System.out.println("No hay tareas para filtrar.");
+            return;
+        }
+
+        int prioridad = leerNumero("Selecciona la prioridad a filtrar - Alta(3), Media(2) o Baja(1): ");
+
+        if (prioridad < 1 || prioridad > 3) {
+            System.out.println("Prioridad no válida. Debe ser 1, 2 o 3.");
+            return;
+        }
+
+        System.out.println("\n--- Tareas con prioridad " + prioridad + " ---");
+        boolean encontradas = false;
+
+        for (int i = 0; i < TAREAS.size(); i++) {
+            Tarea tarea = TAREAS.get(i);
+            if (tarea.prioridad() == prioridad) {
+                String estado = tarea.completada() ? "[X]" : "[ ]";
+                System.out.printf("%d. %s %s%n", i + 1, estado, tarea.descripcion());
+                encontradas = true;
+            }
+        }
+
+        if (!encontradas) {
+            System.out.println("No hay tareas con esa prioridad.");
+        }
+    }
+
 }
