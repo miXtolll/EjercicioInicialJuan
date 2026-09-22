@@ -185,4 +185,30 @@ public class Main {
     private record Tarea(String descripcion, boolean completada) {
     }
 
+    private static void añadirPrioridad(int prioridad){
+
+        // No solicita un número si no existen tareas.
+        if (TAREAS.isEmpty()) {
+            return;
+        }
+
+        // Se resta uno porque los índices de las listas comienzan en cero.
+        int indice = leerNumero("Número de la tarea: ") - 1;
+        int prioridad = leerNumero("Seleccione la prioridad alta(3), media(2) o baja(1)");
+
+        // Comprueba que la tarea seleccionada exista.
+        if (!indiceValido(indice)) {
+            System.out.println("La tarea seleccionada no existe.");
+            return;
+        }
+
+        Tarea tarea = TAREAS.get(indice);
+
+        // Los record son inmutables, por lo que se reemplaza la tarea
+        // por otra con la misma descripción y el estado completado.
+        TAREAS.set(indice, new Tarea(tarea.descripcion(), true));
+
+        System.out.println("Asignada prioridad a la tarea.");
+    }
+
 }
