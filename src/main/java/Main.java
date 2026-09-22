@@ -1,41 +1,45 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Main {
 
     // Scanner utilizado para leer los datos introducidos por el usuario.
     private static final Scanner SCANNER = new Scanner(System.in);
     private static int prioridad;
+    private static final String ARCHIVO_TAREAS = "tareas.txt";
 
     // Lista que almacena las tareas mientras el programa está en ejecución.
     private static final List<Tarea> TAREAS = new ArrayList<>();
 
     public static void main(String[] args) {
-        // Controla cuándo debe finalizar el programa.
-        boolean salir = false;
+        // Carga las tareas guardadas previamente si el archivo existe
+        cargarTareas();
 
+        boolean salir = false;
         System.out.println("=== Gestor de tareas To-Do ===");
 
-        // Muestra el menú repetidamente hasta que el usuario elija salir.
         while (!salir) {
             mostrarMenu();
 
-            // Ejecuta una acción según la opción seleccionada.
             switch (leerNumero("Selecciona una opción: ")) {
                 case 1 -> mostrarTareas();
-                case 2 -> agregarTarea();
-                case 3 -> completarTarea();
-                case 4 -> eliminarTarea();
-                case 5 -> añadirPrioridad();
-                case 0 -> salir = true; //ALEX; yo hubiera puesto saliendo puesto que esta opcion sale del bucle
+                case 2 -> { agregarTarea(); guardarTareas(); }
+                case 3 -> { completarTarea(); guardarTareas(); }
+                case 4 -> { eliminarTarea(); guardarTareas(); }
+                case 5 -> { añadirPrioridad(); guardarTareas(); }
+                case 6 -> filtrarPorPrioridad();
+                case 0 -> { salir = true; guardarTareas(); }
                 default -> System.out.println("Opción no válida.");
             }
         }
 
         System.out.println("¡Hasta pronto!");
-
-        // Cierra el Scanner antes de finalizar el programa.
         SCANNER.close();
     }
 
@@ -258,6 +262,40 @@ public class Main {
 
         if (!encontradas) {
             System.out.println("No hay tareas con esa prioridad.");
+        }
+    }
+
+    private static void guardarTareas() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARCHIVO_TAREAS))) {
+            for (Tarea tarea : TAREAS) {
+                writer.write(tarea.descripcion() + "|" + tarea.completada() + "|" + tarea.prioridad());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error al guardar las tareas: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Carga las tareas registradas en el archivo de texto al iniciar la aplicación.
+     */
+    private static void cargarTareas() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARCHIVO_TAREAS))) {
+            String linea;
+            while ((linea = reader.readLine()) != null) {
+                String[] partes = linea.split("\\|");
+                if (partes.length == 3) {
+                    String descripcion = partes[0];
+                    boolean completada = Boolean.parseBoolean(partes[1]);
+                    int prioridad = Integer.parseInt(partes[2]);
+
+                    TAREAS.add(new Tarea(descripcion, completada, prioridad));
+                }
+            }
+        } catch (IOException e) {
+            // Si el archivo no existe aún, se creará al guardar la primera tarea.
+        } catch (NumberFormatException e) {
+            System.out.println("Error al procesar el formato del archivo de tareas.");
         }
     }
 
